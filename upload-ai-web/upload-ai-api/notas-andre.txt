@@ -1,0 +1,4 @@
+COMANDOS ESSENCIAIS
+-- > Abrir o Prisma Studio
+pnpm prisma studio
+
