@@ -23,3 +23,15 @@ Content-Type: application/json
 {
   "prompt": "navio msc, cruzeiro marítimo"
 }
+
+###
+
+# @name generate-ai-completion
+POST http://localhost:3333/ai/complete
+Content-Type: application/json
+
+{
+  "videoId": "c6c5f176-ba34-4365-bc87-2991e7c57e34",
+  "temperature": 0.5,
+  "template": "Gere um resumo sucinto da transcrição do vídeo informada a seguir: '''{transcription}'''"
+}
