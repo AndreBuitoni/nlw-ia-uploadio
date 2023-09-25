@@ -4,12 +4,55 @@ import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
+import { getFFmpeg } from "@/lib/ffmpeg";
+import { fetchFile } from '@ffmpeg/util'
 
 export function VideoInputForm() {
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const promptInputRef = useRef<HTMLTextAreaElement>(null)
 
-  function handleUploadVideo(event: FormEvent<HTMLFormElement>) {
+  async function convertVideoToAudio(video: File) {
+    console.log("Conversão iniciada.")
+    const ffmpeg = await getFFmpeg()
+    await ffmpeg.writeFile('input.mp4', await fetchFile(video))
+
+    // Utilizar o código abaixo caso esteja ocorrendo algum erro, para ver o erro.
+    // ffmpeg.on('log', log => {
+    //   console.log(log)
+    // })
+
+    // O código abaixo mostra para nós como está a conversão do vídeo.
+    ffmpeg.on('progress', progress => {
+      console.log("Progresso da conversão: " + Math.round(progress.progress * 100))
+    })
+
+    // Os comandos abaixo especificam o que queremos que o ffmpeg execute.
+    // Em resumo, iremos converter input.mp4 em output.mp3
+    await ffmpeg.exec([
+      '-i',
+      'input.mp4',
+      '-map',
+      '0:a',
+      '-b:a',
+      '20k',
+      '-acodec',
+      'libmp3lame',
+      'output.mp3'
+    ])
+
+    const data = await ffmpeg.readFile('output.mp3')
+
+    const audioFileBlob = new Blob([data], { type: 'audio/mpeg'})
+    const audioFile = new File([audioFileBlob], 'audio.mp3', {
+      type: 'audio/mpeg',
+    })
+
+    console.log("Conversão finalizada.")
+
+    return audioFile
+  }
+
+  async function handleUploadVideo(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const prompt = promptInputRef.current?.value
@@ -19,7 +62,9 @@ export function VideoInputForm() {
     }
 
     //converter o vídeo em áudio
-     
+    const audioFile = await convertVideoToAudio(videoFile)
+
+    console.log(audioFile, prompt)
   }
 
   function handleFileSelected(event: ChangeEvent<HTMLInputElement>) {
