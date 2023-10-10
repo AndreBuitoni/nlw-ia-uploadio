@@ -11,13 +11,13 @@ export async function generateAICompletionRoute(app: FastifyInstance) {
     // Vamos definir um esquema de validação de dados, usando a biblioteca Zod.
     const bodySchema = z.object({
       videoId: z.string().uuid(),
-      template: z.string(),
+      prompt: z.string(),
       temperature: z.number().min(0).max(1).default(0.5),
     })
 
     // Vamos desestruturar os dados do corpo da solicitação e;
     // vamos atribuir às variáveis correspondentes
-    const { videoId, template, temperature } = bodySchema.parse(req.body)
+    const { videoId, prompt, temperature } = bodySchema.parse(req.body)
 
     // Vamos procurar um vídeo no Banco de Dados com o id = videoId. 
     // Se não existir, gerar um erro. 
@@ -34,7 +34,7 @@ export async function generateAICompletionRoute(app: FastifyInstance) {
     }
 
     // Se tudo deu certo, vamos substituir o texto 'transcription' pela transcrição do vídeo real.
-    const promptMessage = template.replace('{transcription}', video.transcription)
+    const promptMessage = prompt.replace('{transcription}', video.transcription)
 
     //Agora, vamos fazer uma chamada para a OpenAI
     const response = await openai.chat.completions.create({
